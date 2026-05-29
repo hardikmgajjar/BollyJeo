@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🎬 Bollywood Jeopardy</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<!-- QR Code -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Tiro+Devanagari+Hindi&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --saffron:   #FF9933;
+  --gold:      #F5C842;
+  --gold-dim:  #C8972A;
+  --magenta:   #C2185B;
+  --deep-red:  #8B0000;
+  --navy:      #06071F;
+  --panel:     #0C0E35;
+  --card:      #10143D;
+  --card2:     #161A4A;
+  --used:      #09091E;
+  --green:     #00C853;
+  --red:       #FF1744;
+  --text:      #F0E6D3;
+  --subtext:   #9A8F7A;
+  --border:    rgba(245,200,66,0.22);
+  --border2:   rgba(194,24,91,0.3);
+  --glow:      rgba(245,200,66,0.35);
+  --dd-color:  #FF9933;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Barlow Condensed', sans-serif;
+  background: var(--navy);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(194,24,91,0.07) 0%, transparent 50%),
+    radial-gradient(circle at 85% 80%, rgba(255,153,51,0.07) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(245,200,66,0.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--magenta), var(--saffron), var(--gold), var(--saffron), var(--magenta));
+  z-index: 200;
+}
+
+.hidden { display: none !important; }
+
+button {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  transition: all .15s ease;
+}
+button:active { transform: scale(0.96); }
+
+input, select {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+/* ═══════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════════ */
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), var(--saffron));
+  color: #000;
+  padding: 10px 20px;
+  font-size: 1rem;
+  box-shadow: 0 2px 14px rgba(245,200,66,0.3);
+}
+.btn-gold:hover { box-shadow: 0 4px 22px rgba(245,200,66,0.5); filter: brightness(1.08); }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 18px;
+  font-size: 0.95rem;
+}
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+.btn-green { background: var(--green); color: #000; padding: 10px 20px; font-size: 1rem; border-radius: 6px; }
+.btn-red   { background: var(--red);   color: #fff; padding: 10px 20px; font-size: 1rem; border-radius: 6px; }
+.btn-magenta { background: var(--magenta); color: #fff; padding: 10px 20px; font-size: 1rem; border-radius: 6px; }
+
+/* ═══════════════════════════════════════════
+   HOST SCREEN
+═══════════════════════════════════════════ */
+#host-screen {
+  position: relative;
+  z-index: 1;
+  padding: 16px 20px 40px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+}
+
+.game-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.7rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--saffron) 40%, var(--magenta) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.03em;
+  filter: drop-shadow(0 0 18px rgba(245,200,66,0.4));
+  flex: 1;
+  min-width: 200px;
+}
+
+.room-pill {
+  background: linear-gradient(135deg, var(--magenta), var(--deep-red));
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 5px 14px;
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(194,24,91,0.4);
+}
+
+.round-pill {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 5px 14px;
+  border-radius: 20px;
+}
+
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+#setup-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+#setup-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--saffron), var(--gold));
+}
+
+.setup-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+#playerName {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  flex: 1;
+  min-width: 160px;
+}
+#playerName:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 10px rgba(245,200,66,0.2); }
+#playerName::placeholder { color: var(--subtext); }
+
+#player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.p-chip {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: chipIn .2s ease;
+}
+@keyframes chipIn {
+  from { opacity:0; transform: scale(.8) translateY(-4px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+.p-chip .rm {
+  cursor: pointer;
+  color: var(--red);
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity .1s;
+}
+.p-chip .rm:hover { opacity: 1; }
+
+#scoreboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.score-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 18px;
+  min-width: 120px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .3s;
+}
+.score-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--magenta), var(--gold));
+  opacity: 0;
+  transition: opacity .3s;
+}
+.score-card.leading::after { opacity: 1; }
+.score-card.leading { border-color: var(--gold-dim); }
+
+.sc-name {
+  font-size: 0.75rem;
+  color: var(--subtext);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 2px;
+}
+.sc-val {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.sc-val.negative { color: var(--red); }
+
+/* ═══════════════════════════════════════════
+   JEOPARDY BOARD
+═══════════════════════════════════════════ */
+.round-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1rem;
+  color: var(--saffron);
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  text-align: center;
+  opacity: 0.85;
+}
+
+#board-wrap { overflow-x: auto; padding-bottom: 8px; }
+
+#board {
+  display: grid;
+  gap: 7px;
+  min-width: 620px;
+}
+
+.cat-header {
+  background: linear-gradient(160deg, var(--magenta) 0%, var(--deep-red) 100%);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 12px rgba(139,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.tile {
+  background: linear-gradient(160deg, var(--card) 0%, var(--card2) 100%);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  transition: all .18s ease;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(245,200,66,0.08) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity .18s;
+}
+.tile:hover::before { opacity: 1; }
+.tile:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245,200,66,0.2);
+}
+.tile.used {
+  background: var(--used);
+  color: transparent;
+  border-color: rgba(255,255,255,0.04);
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+}
+.tile.used::after {
+  content: '✓';
+  color: rgba(255,255,255,0.08);
+  font-size: 1.2rem;
+}
+
+/* ═══════════════════════════════════════════
+   QUESTION MODAL
+═══════════════════════════════════════════ */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  backdrop-filter: blur(4px);
+}
+.overlay.show { display: flex; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 32px 30px;
+  width: 92%;
+  max-width: 600px;
+  position: relative;
+  overflow: hidden;
+  animation: modalIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalIn {
+  from { opacity:0; transform: scale(.88) translateY(24px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--magenta), var(--saffron), var(--gold), var(--saffron), var(--magenta));
+}
+
+.modal::after {
+  content: '✦';
+  position: absolute;
+  top: 10px; right: 14px;
+  color: var(--gold);
+  opacity: 0.3;
+  font-size: 1.2rem;
+}
+
+.modal-badge {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.modal-cat-tag {
+  background: linear-gradient(135deg, var(--magenta), var(--deep-red));
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+.modal-pts-tag {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+.modal-dd-tag {
+  background: linear-gradient(135deg, var(--saffron), var(--dd-color));
+  color: #000;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  animation: ddPulse 1.5s ease-in-out infinite;
+}
+@keyframes ddPulse {
+  0%,100% { box-shadow: 0 0 8px rgba(255,153,51,0.4); }
+  50%      { box-shadow: 0 0 20px rgba(255,153,51,0.8); }
+}
+
+#qtext {
+  font-family: 'Tiro Devanagari Hindi', serif;
+  font-size: 1.5rem;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 20px;
+  min-height: 60px;
+}
+
+/* FIX: single answer-reveal element */
+#answer-reveal {
+  background: rgba(0,200,83,0.12);
+  border: 1px solid rgba(0,200,83,0.3);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 16px;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Daily Double Wager */
+#dd-wager-panel {
+  background: var(--card2);
+  border: 1px solid rgba(255,153,51,0.4);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.dd-wager-title {
+  font-size: 0.75rem;
+  color: var(--saffron);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.dd-player-select {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.dd-player-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  border-radius: 20px;
+  cursor: pointer;
+}
+.dd-player-btn.selected {
+  background: linear-gradient(135deg, var(--saffron), var(--gold));
+  color: #000;
+  border-color: transparent;
+}
+.dd-wager-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#dd-wager-input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 120px;
+}
+#dd-wager-input:focus { outline: none; border-color: var(--saffron); }
+
+/* Buzz box */
+.buzz-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.buzz-box-label {
+  font-size: 0.72rem;
+  color: var(--subtext);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.buzz-winner-name {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--gold);
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.buzz-queue-list {
+  font-size: 0.82rem;
+  color: var(--subtext);
+  margin-top: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.modal-actions button { flex: 1; min-width: 80px; font-size: 0.92rem; padding: 10px 8px; }
+.btn-reveal { background: #1a2a7a; color: #fff; border-radius: 6px; }
+.btn-reveal:hover { background: #2035a0; }
+.btn-close-modal { background: rgba(255,255,255,0.06); color: var(--subtext); border-radius: 6px; }
+.btn-close-modal:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+/* ═══════════════════════════════════════════
+   FINAL JEOPARDY MODAL
+═══════════════════════════════════════════ */
+#fj-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 30px;
+  width: 92%;
+  max-width: 640px;
+  position: relative;
+  overflow: hidden;
+  animation: modalIn .25s ease;
+}
+#fj-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--saffron), var(--magenta), var(--saffron), var(--gold));
+}
+
+.fj-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 18px;
+  filter: drop-shadow(0 0 14px rgba(245,200,66,0.5));
+}
+
+.fj-category {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--saffron);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.fj-question {
+  font-family: 'Tiro Devanagari Hindi', serif;
+  font-size: 1.35rem;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 20px;
+  text-align: center;
+  min-height: 60px;
+}
+
+.fj-wagers {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.fj-player-row {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.fj-player-name { font-weight: 700; font-size: 1rem; flex: 1; min-width: 80px; }
+.fj-player-score { color: var(--gold); font-weight: 700; font-size: 1rem; min-width: 70px; }
+.fj-wager-in {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  width: 110px;
+}
+.fj-wager-in:focus { outline: none; border-color: var(--gold); }
+.fj-correct-btn { background: var(--green); color:#000; padding:6px 14px; border-radius:6px; font-size:0.9rem; cursor:pointer; }
+.fj-wrong-btn   { background: var(--red);   color:#fff; padding:6px 14px; border-radius:6px; font-size:0.9rem; cursor:pointer; }
+
+.fj-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.fj-actions button { flex: 1; min-width: 120px; }
+
+/* ═══════════════════════════════════════════
+   QR SIDE PANEL
+═══════════════════════════════════════════ */
+#qr-panel {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100%;
+  width: 280px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  padding: 32px 22px 24px;
+  transform: translateX(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  z-index: 300;
+  overflow-y: auto;
+}
+#qr-panel.open { transform: translateX(0); }
+
+#qr-panel h3 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.1rem;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+#qr-panel p { font-size: 0.85rem; color: var(--subtext); line-height: 1.5; margin-bottom: 18px; }
+#qr-box { background: #fff; padding: 12px; border-radius: 10px; display: inline-block; }
+#qr-link {
+  word-break: break-all;
+  font-size: 0.7rem;
+  color: var(--subtext);
+  margin-top: 10px;
+  display: block;
+  line-height: 1.4;
+}
+.qr-close-btn {
+  margin-top: 18px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════
+   WINNER SCREEN
+═══════════════════════════════════════════ */
+#winner-screen {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.winner-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), var(--saffron), var(--magenta));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(245,200,66,0.5));
+  margin-bottom: 8px;
+  animation: titlePop .6s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes titlePop {
+  from { opacity:0; transform: scale(.7); }
+  to   { opacity:1; transform: scale(1); }
+}
+
+.winner-name {
+  font-family: 'Tiro Devanagari Hindi', serif;
+  font-size: 3rem;
+  color: var(--gold);
+  margin: 10px 0 30px;
+  filter: drop-shadow(0 0 24px rgba(245,200,66,0.6));
+  animation: titlePop .6s .15s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+.final-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 30px;
+}
+
+.lb-row {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: slideUp .4s ease both;
+}
+.lb-row:nth-child(1) { animation-delay: .1s; }
+.lb-row:nth-child(2) { animation-delay: .2s; }
+.lb-row:nth-child(3) { animation-delay: .3s; }
+.lb-row:nth-child(4) { animation-delay: .4s; }
+.lb-row:nth-child(5) { animation-delay: .5s; }
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(20px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.lb-rank { font-size: 1.3rem; font-weight: 900; color: var(--subtext); min-width: 30px; }
+.lb-rank.gold { color: var(--gold); }
+.lb-name { font-size: 1.1rem; font-weight: 700; flex: 1; }
+.lb-score { font-size: 1.2rem; font-weight: 900; color: var(--gold); }
+
+/* ═══════════════════════════════════════════
+   PHONE / BUZZER SCREEN
+═══════════════════════════════════════════ */
+#phone-screen {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+#join-panel { width: 100%; max-width: 360px; }
+
+.join-logo {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, var(--gold), var(--saffron));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+.join-subtitle {
+  color: var(--subtext);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+.join-room-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--magenta), var(--deep-red));
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+}
+
+#joinName {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  width: 100%;
+  margin-bottom: 12px;
+  text-align: center;
+}
+#joinName:focus { outline: none; border-color: var(--gold); }
+#joinName::placeholder { color: var(--subtext); }
+
+#btn-join {
+  width: 100%;
+  background: linear-gradient(135deg, var(--gold), var(--saffron));
+  color: #000;
+  font-size: 1.15rem;
+  padding: 14px;
+  border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(245,200,66,0.3);
+}
+
+#buzzer-panel { width: 100%; max-width: 360px; }
+
+.p-display-name {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.3rem;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+.p-display-room {
+  color: var(--subtext);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+}
+.p-my-score {
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 24px;
+}
+.p-my-score span { color: var(--gold); font-weight: 900; font-size: 1.2rem; }
+
+#buzz-btn {
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #FFD700 0%, #FF9933 50%, #C2185B 100%);
+  color: #000;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow:
+    0 0 0 6px rgba(245,200,66,0.18),
+    0 0 50px rgba(255,153,51,0.35),
+    0 8px 30px rgba(0,0,0,0.6);
+  border: 3px solid rgba(255,255,255,0.2);
+  transition: transform .12s ease, box-shadow .12s ease;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+#buzz-btn::after {
+  content: '';
+  position: absolute;
+  top: 12%; left: 18%;
+  width: 35%;
+  height: 25%;
+  background: rgba(255,255,255,0.22);
+  border-radius: 50%;
+  filter: blur(4px);
+}
+#buzz-btn:hover { transform: scale(1.04); box-shadow: 0 0 0 8px rgba(245,200,66,0.22), 0 0 70px rgba(255,153,51,0.5), 0 10px 36px rgba(0,0,0,0.7); }
+#buzz-btn:active { transform: scale(0.93); }
+
+#buzz-btn.locked {
+  background: radial-gradient(circle at 38% 32%, #444 0%, #222 100%);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+  cursor: default;
+  color: #555;
+}
+#buzz-btn.locked:hover { transform: none; }
+
+#buzz-btn.buzzed-me {
+  background: radial-gradient(circle at 38% 32%, #4ade80 0%, #16a34a 100%);
+  box-shadow: 0 0 0 8px rgba(74,222,128,0.2), 0 0 50px rgba(34,197,94,0.5);
+  color: #fff;
+}
+
+#phone-status {
+  font-size: 1.05rem;
+  color: var(--subtext);
+  min-height: 28px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-bottom: 24px;
+}
+#phone-status.win  { color: var(--green); font-size: 1.1rem; }
+#phone-status.lose { color: var(--red); }
+#phone-status.queue { color: var(--saffron); }
+
+.phone-lb {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.phone-lb-row {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+.phone-lb-row.me-row { border-color: var(--gold-dim); background: var(--card2); }
+.phone-lb-row .plb-rank { color: var(--subtext); min-width: 20px; }
+.phone-lb-row .plb-name { flex: 1; }
+.phone-lb-row .plb-score { color: var(--gold); font-weight: 700; }
+
+#phone-wager-panel {
+  background: var(--card2);
+  border: 1px solid rgba(255,153,51,0.4);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+.phone-wager-title { font-size: 0.85rem; color: var(--saffron); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+#phone-wager-amount {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  margin-bottom: 10px;
+  text-align: center;
+}
+#phone-wager-amount:focus { outline: none; border-color: var(--saffron); }
+#btn-submit-wager {
+  width: 100%;
+  background: linear-gradient(135deg, var(--saffron), var(--gold));
+  color: #000;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════
+   CONFETTI
+═══════════════════════════════════════════ */
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+@media (max-width: 700px) {
+  .game-title { font-size: 1.2rem; }
+  .tile { font-size: 1rem; min-height: 52px; }
+  .cat-header { font-size: 0.65rem; min-height: 48px; padding: 8px 4px; }
+  .modal { padding: 22px 18px; }
+  #qtext { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     HOST SCREEN
+════════════════════════════════════════════ -->
+<div id="host-screen">
+
+  <div class="game-header">
+    <div class="game-title">🎬 Bollywood Jeopardy</div>
+    <div id="room-pill" class="room-pill hidden"></div>
+    <div id="round-pill" class="round-pill hidden"></div>
+    <div class="header-actions">
+      <button class="btn-outline" onclick="toggleQR()" id="btn-qr">📱 QR Invite</button>
+      <button class="btn-gold" id="btn-start-game" onclick="startGame()">▶ Start Game</button>
+      <button class="btn-outline hidden" id="btn-round2" onclick="goToRound2()">⚡ Round 2</button>
+      <button class="btn-magenta hidden" id="btn-final" onclick="startFinalJeopardy()">🌟 Final Jeopardy</button>
+    </div>
+  </div>
+
+  <div id="setup-panel">
+    <div class="setup-row">
+      <input id="playerName" placeholder="Enter player name…" onkeydown="if(event.key==='Enter')addPlayer()"/>
+      <button class="btn-gold" onclick="addPlayer()">+ Add Player</button>
+    </div>
+    <div id="player-chips"></div>
+  </div>
+
+  <div id="scoreboard"></div>
+
+  <div id="board-label" class="round-title hidden"></div>
+  <div id="board-wrap"><div id="board"></div></div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     QR PANEL
+════════════════════════════════════════════ -->
+<div id="qr-panel">
+  <h3>📱 Player Invite</h3>
+  <p>Players scan this code on their phone to open the buzzer and see live scores.</p>
+  <div id="qr-box"></div>
+  <span id="qr-link"></span>
+  <button class="qr-close-btn" onclick="toggleQR()">✕ Close</button>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUESTION MODAL
+════════════════════════════════════════════ -->
+<div class="overlay" id="q-modal">
+  <div class="modal">
+    <div class="modal-badge">
+      <span class="modal-cat-tag" id="m-cat"></span>
+      <span class="modal-pts-tag" id="m-pts"></span>
+      <span class="modal-dd-tag hidden" id="m-dd">✦ Daily Double</span>
+    </div>
+
+    <div id="qtext">—</div>
+
+    <!-- FIX: single answer-reveal element, placed correctly -->
+    <div id="answer-reveal"></div>
+
+    <!-- Daily Double Wager (host side) -->
+    <div id="dd-wager-panel" class="hidden">
+      <div class="dd-wager-title">✦ Daily Double — Select Player &amp; Wager</div>
+      <div class="dd-player-select" id="dd-player-btns"></div>
+      <div class="dd-wager-row">
+        <input id="dd-wager-input" type="number" placeholder="Wager ₹" min="0"/>
+        <button class="btn-gold" onclick="confirmDDWager()">Confirm</button>
+      </div>
+    </div>
+
+    <!-- Buzz box (normal questions) -->
+    <div class="buzz-box" id="buzz-box">
+      <div class="buzz-box-label">🔔 Buzz-in</div>
+      <div class="buzz-winner-name" id="buzz-winner-name">Waiting…</div>
+      <div class="buzz-queue-list" id="buzz-queue-display"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-reveal" onclick="revealAnswer()">👁 Reveal</button>
+      <button class="btn-green" onclick="markCorrect()">✓ Correct</button>
+      <button class="btn-red"   onclick="markWrong()">✗ Wrong</button>
+      <button class="btn-close-modal" onclick="closeQuestion()">✕ Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     FINAL JEOPARDY MODAL
+════════════════════════════════════════════ -->
+<div class="overlay" id="fj-modal">
+  <div id="fj-panel">
+    <div class="fj-title">✦ Final Jeopardy ✦</div>
+    <div class="fj-category" id="fj-cat"></div>
+    <div class="fj-question" id="fj-question">—</div>
+
+    <div class="fj-wagers" id="fj-wagers"></div>
+
+    <div id="fj-answer-reveal" style="color:var(--green);font-weight:700;font-size:1.1rem;margin-bottom:16px;text-align:center;min-height:28px;"></div>
+
+    <div class="fj-actions">
+      <button class="btn-reveal" onclick="revealFJAnswer()">👁 Reveal Answer</button>
+      <button class="btn-gold"   onclick="finishFinalJeopardy()">🏆 End Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     WINNER SCREEN
+════════════════════════════════════════════ -->
+<div id="winner-screen" class="hidden">
+  <div class="winner-title">🎬 Shabaash!</div>
+  <div style="color:var(--subtext);font-size:1rem;letter-spacing:0.1em;margin-bottom:4px;">WINNER</div>
+  <div class="winner-name" id="winner-name-display">—</div>
+  <div class="final-leaderboard" id="final-leaderboard"></div>
+  <button class="btn-gold" onclick="location.reload()" style="padding:12px 32px;font-size:1rem;">🔄 Play Again</button>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PHONE / BUZZER SCREEN
+════════════════════════════════════════════ -->
+<div id="phone-screen" class="hidden">
+
+  <div id="join-panel">
+    <div class="join-logo">🎬 Bollywood Jeopardy</div>
+    <div class="join-subtitle">You're joining</div>
+    <div class="join-room-badge">ROOM <span id="join-room-display"></span></div>
+    <input id="joinName" placeholder="Your name…" onkeydown="if(event.key==='Enter')joinGame()"/>
+    <button id="btn-join" onclick="joinGame()">Join Game →</button>
+  </div>
+
+  <div id="buzzer-panel" class="hidden">
+    <div class="p-display-name" id="p-name-display"></div>
+    <div class="p-display-room" id="p-room-display"></div>
+    <div class="p-my-score">Your Score: <span id="p-my-score-val">₹0</span></div>
+
+    <div id="phone-wager-panel" class="hidden">
+      <div class="phone-wager-title">✦ Daily Double — Enter Your Wager</div>
+      <input id="phone-wager-amount" type="number" placeholder="₹ Wager" min="0"/>
+      <button id="btn-submit-wager" onclick="submitPhoneWager()">Submit Wager</button>
+    </div>
+
+    <button id="buzz-btn" onclick="sendBuzz()">BUZZ!</button>
+    <div id="phone-status">Waiting for question…</div>
+
+    <div class="phone-lb" id="phone-lb"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
+<script>
+// ══════════════════════════════════════════════
+// FIREBASE CONFIG
+// ══════════════════════════════════════════════
+firebase.initializeApp({
+  apiKey: "AIzaSyAB3W9sbaKnrrCToAz94NOQyjR4ZOFtzvM",
+  authDomain: "buzzer-a9561.firebaseapp.com",
+  databaseURL: "https://buzzer-a9561-default-rtdb.firebaseio.com",
+  projectId: "buzzer-a9561",
+  storageBucket: "buzzer-a9561.firebasestorage.app",
+  messagingSenderId: "399233706474",
+  appId: "1:399233706474:web:3236a9ff5923219f45aa93"
+});
+const db = firebase.database();
+
+// ══════════════════════════════════════════════
+// GAME DATA — ROUND 1
+// ══════════════════════════════════════════════
+const ROUND1 = {
+  label: "Round 1",
+  values: [200, 400, 600, 800, 1000],
+  categories: [
+    {
+      name: "Relationship",
+      clues: [
+        { q: "Which Nepo kid did his directorial debut in 2025?", a: "Aryan Khan" },
+        { q: "What is Gauri's last name before she married Shah Rukh Khan?", a: "Chhibber" },
+        { q: "Bebo's best friend's sister?", a: "Malaika Arora" },
+        { q: "Ranbir Kapoor and Kareena Kapoor's Fiya (common relative)?", a: "Reema Jain or Ritu Nanda" },
+        { q: "Banevi (brother's wife) of Saif Ali Khan?", a: "Kunal Khemu" }
+      ]
+    },
+    {
+      name: "Classic Dialogues",
+      clues: [
+        { q: "Complete: 'Don ko pakadna mushkil hi nahin, ___.'", a: "Namumkin hai" },
+        { q: "'Mere paas maa hai' — iconic dialogue from which 1975 Amitabh-Shashi film?", a: "Deewar" },
+        { q: "'Tum rooge aur mein hasunga' — when Chatur said that, which date did he write on the wall?", a: "5th September" },
+        { q: "In Dil Dhadakne Do, Anil Kapoor's character shouted a servant's name at dinner — what was it?", a: "Sunil" },
+        { q: "'Aap humse humari zindagi maang lete... par aapne toh humara guroor cheen liya' — which character in Bajirao Mastani?", a: "Kashibai" }
+      ]
+    },
+    {
+      name: "Movie Characters",
+      clues: [
+        { q: "Who was the singer-actor in the movie Crew?", a: "Diljit Dosanjh" },
+        { q: "Who played Imran Khan's father's role in Jaane Tu... Ya Jaane Na?", a: "Naseeruddin Shah" },
+        { q: "What was the name of Saif Ali Khan's girlfriend who looted him in Goa (in a movie)?", a: "Christin" },
+        { q: "Who played the wife of Abhay Deol's character in Manorama Six Feet Under?", a: "Gul Panag" },
+        { q: "Who was the uncle (dad's brother) of Shahid Kapoor's character in Haider?", a: "Kay Kay Menon" }
+      ]
+    },
+    {
+      name: "Directorial Trivia",
+      clues: [
+        { q: "Who directed Kal Ho Naa Ho?", a: "Nikhil Advani" },
+        { q: "Who directed Satya?", a: "Ram Gopal Varma" },
+        { q: "Who directed Lust Stories on Netflix?", a: "Anurag Kashyap, Zoya Akhtar, Dibakar Banerjee and Karan Johar" },
+        { q: "Who directed Jawan?", a: "Atlee" },
+        { q: "Which was the last movie directed by Yash Chopra?", a: "Jab Tak Hai Jaan" }
+      ]
+    },
+    {
+      name: "Khel Khel Mein",
+      clues: [
+        { q: "Aamir Khan's 2016 film Dangal is based on the life of which real wrestler?", a: "Mahavir Singh Phogat" },
+        { q: "Ranveer Singh and Deepika Padukone played reel-life husband and wife in which sports biopic?", a: "83" },
+        { q: "Anushka Sharma played a wrestler in which movie?", a: "Sultan" },
+        { q: "Rani Mukerji played a cricketer in which movie?", a: "Dil Bole Hadippa" },
+        { q: "Priyanka Chopra donned boxing gloves to portray this Olympic champion in 2014.", a: "Mary Kom" }
+      ]
+    }
+  ]
+};
+
+// ══════════════════════════════════════════════
+// GAME DATA — ROUND 2
+// ══════════════════════════════════════════════
+const ROUND2 = {
+  label: "Round 2 — Double Jeopardy",
+  values: [400, 800, 1200, 1600, 2000],
+  categories: [
+    {
+      name: "Directors' Vision",
+      clues: [
+        { q: "This director helmed Mughal-E-Azam (1960) after 16 years of production.", a: "K. Asif" },
+        { q: "Sanjay Leela Bhansali directed this opulent 2018 Rajput period drama starring Deepika Padukone.", a: "Padmaavat" },
+        { q: "Rajkumar Hirani approached which actor for the role of Munna before Sanjay Dutt was finalized?", a: "Shah Rukh Khan" },
+        { q: "The first movie Aditya Chopra directed without SRK?", a: "Befikre" },
+        { q: "In Dhurandhar 2, what was the birthdate of Hamza Ali Mazari (a peak detail by director Aditya Dhar)?", a: "26/11" }
+      ]
+    },
+    {
+      name: "Villains & Vamps",
+      clues: [
+        { q: "Amjad Khan played the terrifying dacoit Gabbar Singh in which 1975 classic?", a: "Sholay" },
+        { q: "Sanjay Dutt's brutal Kancha Cheena is the villain of this 2012 Hrithik Roshan blockbuster.", a: "Agneepath" },
+        { q: "Who played the villain who wore rings and kept saying 'Mogambo Khush Hua'?", a: "Amrish Puri" },
+        { q: "Who played the villain in Jawan?", a: "Vijay Sethupathi" },
+        { q: "Pankaj Tripathi plays the menacing Kaleen Bhaiya in which Prime Video crime series?", a: "Mirzapur" }
+      ]
+    },
+    {
+      name: "Awards & Records",
+      clues: [
+        { q: "The first Indian film ever nominated for the Academy Award for Best Foreign Language Film (1957).", a: "Mother India" },
+        { q: "Which SS Rajamouli film became India's highest-grossing film as of 2023?", a: "Baahubali 2: The Conclusion" },
+        { q: "For which movie did Priyanka Chopra win the National Award in 2008?", a: "Fashion" },
+        { q: "Which was the first Bollywood movie to get permission to shoot at NASA?", a: "Swades" },
+        { q: "Who was the music director for Uri: The Surgical Strike, who also won his first National Award?", a: "Shashwat Sachdev" }
+      ]
+    },
+    {
+      name: "Misc 1",
+      clues: [
+        { q: "What was the name of Deepika Padukone's character in Tamasha?", a: "Tara" },
+        { q: "After decades, in 2019, Sanjay Dutt and Madhuri Dixit acted together in which movie?", a: "Kalank" },
+        { q: "'Yeh joke tha? Haa tha toh?' — the same recall used by director Karan Johar in which two films?", a: "Kabhi Khushi Kabhie Gham / Kuch Kuch Hota Hai" },
+        { q: "Which movie had the most number of British actors?", a: "Lagaan" },
+        { q: "In Suryavanshi, Amitabh Bachchan's character Heera Thakur ate which food, after which he vomited blood?", a: "Kheer" }
+      ]
+    },
+    {
+      name: "Pot Pourri",
+      clues: [
+        { q: "Which actor was actually attacked by an intruder in 2025 and got self-injured?", a: "Saif Ali Khan" },
+        { q: "What was the debut movie for the singing career of Shreya Ghoshal?", a: "Devdas" },
+        { q: "Priyanka Chopra played FBI trainee Alex Parrish in which American TV thriller (2015–2018)?", a: "Quantico" },
+        { q: "In Josh, there were two gangs — one was Bicchhu Gang, and the other was?", a: "Eagle Gang" },
+        { q: "Which movie had Amitabh Bachchan, Govinda and Madhuri Dixit in the song 'Makhna'?", a: "Bade Miyan Chote Miyan" }
+      ]
+    }
+  ]
+};
+
+// ══════════════════════════════════════════════
+// FINAL JEOPARDY
+// ══════════════════════════════════════════════
+const FINAL_JEOPARDY = {
+  category: "Bollywood History",
+  q: "Released in 1975, this film featured two of Bollywood's biggest superstars as childhood friends turned enemies — one a police officer, one a criminal. Directed by Ramesh Sippy, its climax remains one of Indian cinema's most iconic scenes. Name the film.",
+  a: "Sholay"
+};
+
+// ══════════════════════════════════════════════
+// DAILY DOUBLES
+// ══════════════════════════════════════════════
+function pickDailyDoubles(numCats, numClues, count) {
+  count = count || 2;
+  const positions = new Set();
+  while (positions.size < count) {
+    const c = Math.floor(Math.random() * numCats);
+    const q = Math.floor(Math.random() * numClues);
+    if (q === 0 && Math.random() < 0.8) continue;
+    positions.add(c + "-" + q);
+  }
+  return positions;
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function genRoom() {
+  return Math.random().toString(36).slice(2, 6).toUpperCase();
+}
+
+// Firebase keys cannot contain . # $ / [ ]
+function encodeKey(name) {
+  return name.replace(/[.#$\[\]/]/g, "_");
+}
+
+// ══════════════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════════════
+const params    = new URLSearchParams(location.search);
+const paramRoom = params.get("room");
+const isHost    = !paramRoom;
+
+const room       = paramRoom ? paramRoom.toUpperCase() : genRoom();
+let players      = [];
+let scores       = {};
+let usedR1       = {};
+let usedR2       = {};
+let ddR1         = new Set();
+let ddR2         = new Set();
+let currentRound = 1;
+let currentKey   = null;
+let currentQ     = null;
+let buzzLocked   = false;
+let buzzWinner   = null;
+let buzzQueue    = [];
+let ddPlayer     = null;
+let ddWager      = 0;
+let myName       = null;
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+if (!isHost) {
+  document.getElementById("host-screen").classList.add("hidden");
+  document.getElementById("phone-screen").classList.remove("hidden");
+  document.getElementById("join-room-display").textContent = room;
+  listenAsPlayer();
+} else {
+  ddR1 = pickDailyDoubles(5, 5);
+  ddR2 = pickDailyDoubles(5, 5);
+}
+
+// ══════════════════════════════════════════════
+// HOST: PLAYERS
+// ══════════════════════════════════════════════
+function addPlayer() {
+  const inp = document.getElementById("playerName");
+  const n = inp.value.trim();
+  if (!n || players.includes(n)) { inp.focus(); return; }
+  players.push(n);
+  scores[n] = 0;
+  inp.value = "";
+  renderPlayerChips();
+  hostSyncPlayerToFB(n, 0);
+}
+
+function removePlayer(n) {
+  players = players.filter(function(p) { return p !== n; });
+  delete scores[n];
+  renderPlayerChips();
+  db.ref("rooms/" + room + "/players/" + encodeKey(n)).remove();
+}
+
+function renderPlayerChips() {
+  document.getElementById("player-chips").innerHTML =
+    players.map(function(p) {
+      return '<div class="p-chip">' + p +
+        '<span class="rm" onclick="removePlayer(\'' + p.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">✕</span>' +
+        '</div>';
+    }).join("");
+}
+
+function hostSyncPlayerToFB(name, score) {
+  db.ref("rooms/" + room + "/players/" + encodeKey(name))
+    .set({ name: name, score: score });
+}
+
+function syncScoreToFB(name) {
+  db.ref("rooms/" + room + "/players/" + encodeKey(name) + "/score")
+    .set(scores[name]);
+}
+
+// ══════════════════════════════════════════════
+// HOST: START GAME
+// ══════════════════════════════════════════════
+function startGame() {
+  if (players.length === 0) {
+    alert("Add at least one player first!");
+    return;
+  }
+  document.getElementById("setup-panel").classList.add("hidden");
+  document.getElementById("btn-start-game").classList.add("hidden");
+  document.getElementById("room-pill").classList.remove("hidden");
+  document.getElementById("room-pill").textContent = "ROOM " + room;
+  document.getElementById("round-pill").classList.remove("hidden");
+  document.getElementById("round-pill").textContent = "Round 1";
+  document.getElementById("btn-round2").classList.remove("hidden");
+  document.getElementById("board-label").classList.remove("hidden");
+  document.getElementById("board-label").textContent = ROUND1.label;
+
+  buildBoard(ROUND1, usedR1, ddR1);
+  renderScores();
+
+  // Listen for phone players joining
+  db.ref("rooms/" + room + "/players").on("value", function(snap) {
+    const data = snap.val() || {};
+    Object.entries(data).forEach(function(entry) {
+      const name = entry[1].name;
+      const score = entry[1].score || 0;
+      if (!players.includes(name)) {
+        players.push(name);
+        scores[name] = score;
+        renderPlayerChips();
+        renderScores();
+      } else {
+        // Keep scores in sync if updated elsewhere
+        scores[name] = score;
+        renderScores();
+      }
+    });
+  });
+
+  // Listen for buzzes
+  db.ref("rooms/" + room + "/buzz").on("value", function(snap) {
+    const d = snap.val();
+    if (!d) {
+      buzzWinner = null;
+      buzzQueue  = [];
+      document.getElementById("buzz-winner-name").textContent = "Waiting…";
+      document.getElementById("buzz-queue-display").textContent = "";
+      return;
+    }
+    const q = d.queue || [d.winner];
+    buzzWinner = d.winner;
+    buzzQueue  = q;
+    document.getElementById("buzz-winner-name").innerHTML =
+      '<span style="color:var(--saffron)">🔔</span> ' + buzzWinner;
+    if (q.length > 1) {
+      document.getElementById("buzz-queue-display").textContent =
+        "Queue: " + q.slice(1).join(" → ");
+    } else {
+      document.getElementById("buzz-queue-display").textContent = "";
+    }
+  });
+
+  // Broadcast round
+  db.ref("rooms/" + room + "/game").set({ round: 1, open: false });
+}
+
+// ══════════════════════════════════════════════
+// HOST: BUILD BOARD
+// ══════════════════════════════════════════════
+function buildBoard(roundData, usedMap, ddSet) {
+  const board = document.getElementById("board");
+  const n = roundData.categories.length;
+  board.style.gridTemplateColumns = "repeat(" + n + ", 1fr)";
+  board.innerHTML = "";
+
+  roundData.categories.forEach(function(cat) {
+    const h = document.createElement("div");
+    h.className = "cat-header";
+    h.textContent = cat.name;
+    board.appendChild(h);
+  });
+
+  roundData.values.forEach(function(pts, qi) {
+    roundData.categories.forEach(function(cat, ci) {
+      const key = ci + "-" + qi;
+      const tile = document.createElement("div");
+      tile.className = "tile" + (usedMap[key] ? " used" : "");
+      tile.id = "tile-" + key;
+      tile.textContent = usedMap[key] ? "" : "₹" + pts;
+      tile.onclick = (function(ci2, qi2) {
+        return function() { openQuestion(ci2, qi2, roundData, usedMap, ddSet); };
+      })(ci, qi);
+      board.appendChild(tile);
+    });
+  });
+}
+
+// ══════════════════════════════════════════════
+// HOST: OPEN QUESTION
+// ══════════════════════════════════════════════
+function openQuestion(ci, qi, roundData, usedMap, ddSet) {
+  const key = ci + "-" + qi;
+  if (usedMap[key]) return;
+
+  const cat  = roundData.categories[ci];
+  const clue = cat.clues[qi];
+  const val  = roundData.values[qi];
+  const isDD = ddSet.has(key);
+
+  currentKey = key;
+  currentQ   = { q: clue.q, a: clue.a, cat: cat.name, val: val, isDD: isDD };
+
+  // Reset buzz state
+  buzzLocked = false;
+  buzzWinner = null;
+  buzzQueue  = [];
+  ddPlayer   = null;
+  ddWager    = 0;
+
+  // Clear Firebase buzz
+  db.ref("rooms/" + room + "/buzz").remove();
+
+  if (isDD) {
+    db.ref("rooms/" + room + "/game").set({
+      open: false,
+      dailyDouble: true,
+      cat: cat.name,
+      val: val,
+      round: currentRound
+    });
+  } else {
+    db.ref("rooms/" + room + "/game").set({
+      open: true,
+      dailyDouble: false,
+      cat: cat.name,
+      val: val,
+      round: currentRound
+    });
+  }
+
+  // Reset modal state
+  document.getElementById("m-cat").textContent  = cat.name.toUpperCase();
+  document.getElementById("m-pts").textContent  = "₹" + val;
+  document.getElementById("answer-reveal").textContent = "";
+  document.getElementById("buzz-winner-name").textContent = "Waiting…";
+  document.getElementById("buzz-queue-display").textContent = "";
+
+  if (isDD) {
+    document.getElementById("m-dd").classList.remove("hidden");
+    document.getElementById("dd-wager-panel").classList.remove("hidden");
+    document.getElementById("buzz-box").style.display = "none";
+    document.getElementById("qtext").textContent = "✦ Daily Double! ✦";
+    document.getElementById("dd-player-btns").innerHTML =
+      players.map(function(p) {
+        return '<button class="dd-player-btn" onclick="selectDDPlayer(\'' +
+          p.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\',this)">' + p + '</button>';
+      }).join("");
+    document.getElementById("dd-wager-input").value = "";
+  } else {
+    document.getElementById("m-dd").classList.add("hidden");
+    document.getElementById("dd-wager-panel").classList.add("hidden");
+    document.getElementById("buzz-box").style.display = "";
+    document.getElementById("qtext").textContent = clue.q;
+  }
+
+  document.getElementById("q-modal").classList.add("show");
+}
+
+function selectDDPlayer(name, btn) {
+  ddPlayer = name;
+  document.querySelectorAll(".dd-player-btn").forEach(function(b) { b.classList.remove("selected"); });
+  btn.classList.add("selected");
+}
+
+function confirmDDWager() {
+  if (!ddPlayer) { alert("Select a player first!"); return; }
+  const w = parseInt(document.getElementById("dd-wager-input").value) || 0;
+  if (w < 0) { alert("Wager must be ≥ 0"); return; }
+  ddWager = w;
+  document.getElementById("qtext").textContent = currentQ.q;
+  document.getElementById("dd-wager-panel").classList.add("hidden");
+  document.getElementById("buzz-box").style.display = "";
+  document.getElementById("buzz-winner-name").innerHTML =
+    '<span style="color:var(--saffron)">✦</span> ' + ddPlayer + ' wagered ₹' + ddWager;
+  db.ref("rooms/" + room + "/game").update({ open: true, ddPlayer: ddPlayer, ddWager: ddWager });
+}
+
+function revealAnswer() {
+  document.getElementById("answer-reveal").textContent = "✅ " + currentQ.a;
+}
+
+function markCorrect() {
+  if (currentQ.isDD) {
+    if (!ddPlayer) { alert("No DD player set!"); return; }
+    scores[ddPlayer] = (scores[ddPlayer] || 0) + ddWager;
+    syncScoreToFB(ddPlayer);
+    launchConfetti();
+    finishQuestion();
+  } else {
+    if (!buzzWinner) { alert("No one has buzzed in!"); return; }
+    scores[buzzWinner] = (scores[buzzWinner] || 0) + currentQ.val;
+    syncScoreToFB(buzzWinner);
+    launchConfetti();
+    finishQuestion();
+  }
+}
+
+function markWrong() {
+  if (currentQ.isDD) {
+    if (ddPlayer) {
+      scores[ddPlayer] = (scores[ddPlayer] || 0) - ddWager;
+      syncScoreToFB(ddPlayer);
+    }
+    finishQuestion();
+  } else {
+    if (buzzWinner) {
+      // FIX: deduct half points, then allow re-buzz (don't close modal)
+      scores[buzzWinner] = (scores[buzzWinner] || 0) - Math.floor(currentQ.val / 2);
+      syncScoreToFB(buzzWinner);
+    }
+    // Reset buzz for re-buzz opportunity
+    buzzLocked = false;
+    buzzWinner = null;
+    buzzQueue  = [];
+    db.ref("rooms/" + room + "/buzz").remove();
+    document.getElementById("buzz-winner-name").textContent = "Waiting (re-buzz)…";
+    document.getElementById("buzz-queue-display").textContent = "";
+    renderScores();
+    // Don't close modal — leave open for another buzz
+  }
+}
+
+function finishQuestion() {
+  const usedMap = currentRound === 1 ? usedR1 : usedR2;
+  usedMap[currentKey] = true;
+  const tile = document.getElementById("tile-" + currentKey);
+  if (tile) { tile.classList.add("used"); tile.textContent = ""; }
+
+  db.ref("rooms/" + room + "/buzz").remove();
+  db.ref("rooms/" + room + "/game").set({ open: false, round: currentRound });
+  document.getElementById("q-modal").classList.remove("show");
+  renderScores();
+}
+
+function closeQuestion() {
+  // FIX: reset modal visibility state on close
+  document.getElementById("dd-wager-panel").classList.add("hidden");
+  document.getElementById("buzz-box").style.display = "";
+  document.getElementById("m-dd").classList.add("hidden");
+
+  db.ref("rooms/" + room + "/game").set({ open: false, round: currentRound });
+  db.ref("rooms/" + room + "/buzz").remove();
+  document.getElementById("q-modal").classList.remove("show");
+}
+
+// ══════════════════════════════════════════════
+// HOST: ROUND 2
+// ══════════════════════════════════════════════
+function goToRound2() {
+  if (!confirm("Move to Round 2 — Double Jeopardy? This cannot be undone.")) return;
+  currentRound = 2;
+  document.getElementById("round-pill").textContent = "Round 2";
+  document.getElementById("board-label").textContent = ROUND2.label;
+  document.getElementById("btn-round2").classList.add("hidden");
+  document.getElementById("btn-final").classList.remove("hidden");
+  buildBoard(ROUND2, usedR2, ddR2);
+  db.ref("rooms/" + room + "/game").set({ open: false, round: 2 });
+}
+
+// ══════════════════════════════════════════════
+// HOST: FINAL JEOPARDY
+// ══════════════════════════════════════════════
+function startFinalJeopardy() {
+  if (!confirm("Start Final Jeopardy? All players will wager.")) return;
+
+  document.getElementById("fj-cat").textContent      = FINAL_JEOPARDY.category.toUpperCase();
+  document.getElementById("fj-question").textContent = FINAL_JEOPARDY.q;
+  document.getElementById("fj-answer-reveal").textContent = "";
+
+  const maxWager = currentRound === 2 ? 2000 : 1000;
+  const rows = players.map(function(p) {
+    const safeKey = encodeKey(p);
+    const safeP   = p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const curScore = scores[p] || 0;
+    return '<div class="fj-player-row" id="fj-row-' + safeKey + '">' +
+      '<div class="fj-player-name">' + p + '</div>' +
+      '<div class="fj-player-score">₹' + curScore + '</div>' +
+      '<input class="fj-wager-in" id="fj-wager-' + safeKey + '" type="number" placeholder="Wager" min="0" max="' + Math.max(curScore, maxWager) + '"/>' +
+      '<button class="fj-correct-btn" onclick="fjScore(\'' + safeP + '\',true)">✓</button>' +
+      '<button class="fj-wrong-btn"   onclick="fjScore(\'' + safeP + '\',false)">✗</button>' +
+      '</div>';
+  }).join("");
+
+  document.getElementById("fj-wagers").innerHTML = rows;
+  db.ref("rooms/" + room + "/game").set({ open: false, finalJeopardy: true, round: 3 });
+  document.getElementById("fj-modal").classList.add("show");
+}
+
+function revealFJAnswer() {
+  document.getElementById("fj-answer-reveal").textContent = "✅ " + FINAL_JEOPARDY.a;
+}
+
+function fjScore(name, correct) {
+  const safeKey = encodeKey(name);
+  const wager   = parseInt(document.getElementById("fj-wager-" + safeKey).value) || 0;
+  scores[name]  = (scores[name] || 0) + (correct ? wager : -wager);
+  syncScoreToFB(name);
+  const row = document.getElementById("fj-row-" + safeKey);
+  if (row) row.style.opacity = "0.5";
+  // Update displayed score in the row
+  const scoreEl = row ? row.querySelector(".fj-player-score") : null;
+  if (scoreEl) scoreEl.textContent = "₹" + scores[name];
+}
+
+function finishFinalJeopardy() {
+  document.getElementById("fj-modal").classList.remove("show");
+  showWinner();
+}
+
+// ══════════════════════════════════════════════
+// HOST: WINNER SCREEN
+// ══════════════════════════════════════════════
+function showWinner() {
+  document.getElementById("host-screen").classList.add("hidden");
+  document.getElementById("winner-screen").classList.remove("hidden");
+
+  const sorted = players.slice().sort(function(a, b) { return (scores[b]||0) - (scores[a]||0); });
+  const winner = sorted[0];
+
+  document.getElementById("winner-name-display").textContent = winner;
+
+  const medals = ["🥇","🥈","🥉","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"];
+  document.getElementById("final-leaderboard").innerHTML =
+    sorted.map(function(p, i) {
+      return '<div class="lb-row">' +
+        '<div class="lb-rank ' + (i===0?'gold':'') + '">' + (medals[i]||i+1) + '</div>' +
+        '<div class="lb-name">' + p + '</div>' +
+        '<div class="lb-score">₹' + (scores[p]||0) + '</div>' +
+        '</div>';
+    }).join("");
+
+  db.ref("rooms/" + room + "/game").set({ over: true, winner: winner });
+  launchConfetti(120);
+}
+
+// ══════════════════════════════════════════════
+// HOST: SCOREBOARD
+// ══════════════════════════════════════════════
+function renderScores() {
+  if (players.length === 0) return;
+  const maxScore = Math.max.apply(null, players.map(function(p) { return scores[p]||0; }));
+  document.getElementById("scoreboard").innerHTML =
+    players.map(function(p) {
+      const s = scores[p] || 0;
+      const isLeading = s === maxScore && players.length > 1;
+      return '<div class="score-card ' + (isLeading?'leading':'') + '">' +
+        '<div class="sc-name">' + p + '</div>' +
+        '<div class="sc-val ' + (s<0?'negative':'') + '">₹' + s + '</div>' +
+        '</div>';
+    }).join("");
+}
+
+// ══════════════════════════════════════════════
+// HOST: QR CODE
+// ══════════════════════════════════════════════
+function toggleQR() {
+  const panel  = document.getElementById("qr-panel");
+  const isOpen = panel.classList.toggle("open");
+  if (isOpen) {
+    document.getElementById("qr-box").innerHTML = "";
+    const joinURL = location.origin + location.pathname + "?room=" + room;
+    document.getElementById("qr-link").textContent = joinURL;
+    new QRCode(document.getElementById("qr-box"), {
+      text: joinURL,
+      width: 210, height: 210,
+      colorDark: "#000", colorLight: "#fff"
+    });
+  }
+}
+
+// ══════════════════════════════════════════════
+// PHONE: JOIN
+// ══════════════════════════════════════════════
+function joinGame() {
+  const n = document.getElementById("joinName").value.trim();
+  if (!n) return;
+  myName = n;
+  document.getElementById("join-panel").classList.add("hidden");
+  document.getElementById("buzzer-panel").classList.remove("hidden");
+  document.getElementById("p-name-display").textContent = myName;
+  document.getElementById("p-room-display").textContent = "ROOM " + room;
+
+  // Register in Firebase (phone-side version)
+  db.ref("rooms/" + room + "/players/" + encodeKey(myName))
+    .transaction(function(cur) {
+      // Only set if not already present (avoid overwriting host-set score)
+      if (!cur) return { name: myName, score: 0 };
+      return { name: myName, score: cur.score || 0 };
+    });
+}
+
+// ══════════════════════════════════════════════
+// PHONE: BUZZ
+// ══════════════════════════════════════════════
+function sendBuzz() {
+  const btn = document.getElementById("buzz-btn");
+  if (btn.classList.contains("locked")) return;
+
+  db.ref("rooms/" + room + "/buzz").transaction(function(cur) {
+    if (!cur) {
+      return { winner: myName, queue: [myName], time: Date.now() };
+    }
+    const q = cur.queue || [cur.winner];
+    if (!q.includes(myName)) {
+      q.push(myName);
+      return { winner: cur.winner, queue: q, time: cur.time };
+    }
+    return; // abort — already in queue
+  });
+}
+
+function submitPhoneWager() {
+  const w = parseInt(document.getElementById("phone-wager-amount").value) || 0;
+  db.ref("rooms/" + room + "/playerWagers/" + encodeKey(myName)).set(w);
+  document.getElementById("phone-wager-panel").classList.add("hidden");
+  document.getElementById("phone-status").textContent = "Wager submitted! ₹" + w;
+}
+
+// ══════════════════════════════════════════════
+// PHONE: LISTEN
+// ══════════════════════════════════════════════
+function listenAsPlayer() {
+  const statusEl = document.getElementById("phone-status");
+  const buzzBtn  = document.getElementById("buzz-btn");
+
+  db.ref("rooms/" + room + "/game").on("value", function(snap) {
+    const g = snap.val();
+    if (!g) return;
+
+    if (g.over) {
+      buzzBtn.classList.add("locked");
+      statusEl.className = "";
+      statusEl.textContent = "🎬 Game over! " + (g.winner ? g.winner + " wins!" : "");
+      return;
+    }
+
+    if (g.finalJeopardy) {
+      buzzBtn.classList.add("locked");
+      statusEl.className = "";
+      statusEl.textContent = "🌟 Final Jeopardy — host controls wagers";
+      document.getElementById("phone-wager-panel").classList.add("hidden");
+      return;
+    }
+
+    // FIX: Only show DD wager panel to ALL players (host picks who is answering)
+    // The wager panel on phone is informational; actual wager is on host side
+    if (g.dailyDouble && !g.open) {
+      buzzBtn.classList.add("locked");
+      buzzBtn.classList.remove("buzzed-me");
+      statusEl.className = "";
+      statusEl.textContent = "✦ Daily Double — host selecting player & wager";
+      document.getElementById("phone-wager-panel").classList.add("hidden");
+      return;
+    }
+
+    document.getElementById("phone-wager-panel").classList.add("hidden");
+
+    if (g.open) {
+      buzzBtn.classList.remove("locked", "buzzed-me");
+      statusEl.className = "";
+      statusEl.textContent = "🔔 Buzz in!";
+    } else {
+      buzzBtn.classList.remove("buzzed-me");
+      buzzBtn.classList.add("locked");
+      statusEl.className = "";
+      statusEl.textContent = "Waiting for question…";
+    }
+  });
+
+  db.ref("rooms/" + room + "/buzz").on("value", function(snap) {
+    const d = snap.val();
+    if (!d) {
+      buzzBtn.classList.remove("buzzed-me");
+      return;
+    }
+    const q   = d.queue || [d.winner];
+    const pos = q.indexOf(myName);
+
+    if (d.winner === myName) {
+      buzzBtn.classList.add("buzzed-me");
+      buzzBtn.classList.remove("locked");
+      statusEl.className = "win";
+      statusEl.textContent = "🏆 You buzzed first!";
+    } else if (pos > 0) {
+      statusEl.className = "queue";
+      statusEl.textContent = "Queue #" + (pos + 1) + " — " + d.winner + " buzzed first";
+    } else {
+      // Someone else buzzed — lock this player out
+      buzzBtn.classList.add("locked");
+      buzzBtn.classList.remove("buzzed-me");
+      statusEl.className = "lose";
+      statusEl.textContent = d.winner + " buzzed first!";
+    }
+  });
+
+  // Live scores
+  db.ref("rooms/" + room + "/players").on("value", function(snap) {
+    const data   = snap.val() || {};
+    const sorted = Object.values(data).sort(function(a,b) { return (b.score||0) - (a.score||0); });
+
+    const me = data[encodeKey(myName)];
+    const scoreEl = document.getElementById("p-my-score-val");
+    if (me && scoreEl) {
+      scoreEl.textContent = "₹" + (me.score || 0);
+    }
+
+    const lb = document.getElementById("phone-lb");
+    if (lb) {
+      lb.innerHTML = sorted.map(function(p, i) {
+        return '<div class="phone-lb-row ' + (p.name === myName ? 'me-row' : '') + '">' +
+          '<span class="plb-rank">' + (i+1) + '</span>' +
+          '<span class="plb-name">' + p.name + '</span>' +
+          '<span class="plb-score">₹' + (p.score||0) + '</span>' +
+          '</div>';
+      }).join("");
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+// CONFETTI
+// ══════════════════════════════════════════════
+function launchConfetti(count) {
+  count = count || 60;
+  const colors = ["#F5C842","#FF9933","#C2185B","#22c55e","#60a5fa","#fff"];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement("div");
+    el.className = "confetti-piece";
+    const size = 6 + Math.random() * 8;
+    el.style.cssText =
+      "left:" + (Math.random()*100) + "vw;" +
+      "top:-20px;" +
+      "width:" + size + "px;" +
+      "height:" + size + "px;" +
+      "background:" + colors[Math.floor(Math.random()*colors.length)] + ";" +
+      "animation-duration:" + (1.5 + Math.random()*2) + "s;" +
+      "animation-delay:" + (Math.random()*0.8) + "s;" +
+      "border-radius:" + (Math.random()>0.5?"50%":"2px") + ";" +
+      "transform:rotate(" + (Math.random()*360) + "deg);";
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 3500);
+  }
+}
+</script>
+
+</body>
+</html>
