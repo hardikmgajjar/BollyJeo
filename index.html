@@ -14,9 +14,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Tiro+Devanagari+Hindi&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet"/>
 
 <style>
-/* ═══════════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════════ */
 :root {
   --saffron:   #FF9933;
   --gold:      #F5C842;
@@ -89,9 +86,6 @@ input, select {
   letter-spacing: 0.04em;
 }
 
-/* ═══════════════════════════════════════════
-   SHARED COMPONENTS
-═══════════════════════════════════════════ */
 .btn-gold {
   background: linear-gradient(135deg, var(--gold), var(--saffron));
   color: #000;
@@ -114,9 +108,7 @@ input, select {
 .btn-red   { background: var(--red);   color: #fff; padding: 10px 20px; font-size: 1rem; border-radius: 6px; }
 .btn-magenta { background: var(--magenta); color: #fff; padding: 10px 20px; font-size: 1rem; border-radius: 6px; }
 
-/* ═══════════════════════════════════════════
-   HOST SCREEN
-═══════════════════════════════════════════ */
+/* HOST SCREEN */
 #host-screen {
   position: relative;
   z-index: 1;
@@ -288,9 +280,7 @@ input, select {
 }
 .sc-val.negative { color: var(--red); }
 
-/* ═══════════════════════════════════════════
-   JEOPARDY BOARD
-═══════════════════════════════════════════ */
+/* BOARD */
 .round-title {
   font-family: 'Cinzel Decorative', serif;
   font-size: 1rem;
@@ -376,9 +366,7 @@ input, select {
   font-size: 1.2rem;
 }
 
-/* ═══════════════════════════════════════════
-   QUESTION MODAL
-═══════════════════════════════════════════ */
+/* QUESTION MODAL */
 .overlay {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.9);
@@ -474,7 +462,6 @@ input, select {
   min-height: 60px;
 }
 
-/* FIX: single answer-reveal element */
 #answer-reveal {
   background: rgba(0,200,83,0.12);
   border: 1px solid rgba(0,200,83,0.3);
@@ -489,6 +476,52 @@ input, select {
   align-items: center;
   gap: 8px;
 }
+
+/* ── BUZZ TIMER ── */
+#buzz-timer-wrap {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+}
+#buzz-timer-wrap.active { display: flex; }
+
+#buzz-timer-label {
+  font-size: 0.72rem;
+  color: var(--subtext);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#buzz-timer-bar-wrap {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+#buzz-timer-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  border-radius: 4px;
+  transition: width 0.25s linear, background-color 0.5s;
+  width: 100%;
+}
+#buzz-timer-bar.urgent { background: linear-gradient(90deg, var(--red), var(--saffron)); }
+
+#buzz-timer-num {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--gold);
+  min-width: 28px;
+  text-align: right;
+}
+#buzz-timer-num.urgent { color: var(--red); }
 
 /* Daily Double Wager */
 #dd-wager-panel {
@@ -583,9 +616,7 @@ input, select {
 .btn-close-modal { background: rgba(255,255,255,0.06); color: var(--subtext); border-radius: 6px; }
 .btn-close-modal:hover { background: rgba(255,255,255,0.1); color: var(--text); }
 
-/* ═══════════════════════════════════════════
-   FINAL JEOPARDY MODAL
-═══════════════════════════════════════════ */
+/* FINAL JEOPARDY MODAL */
 #fj-panel {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -622,6 +653,21 @@ input, select {
   text-transform: uppercase;
   margin-bottom: 14px;
 }
+
+/* FJ Phase 1: wager entry */
+#fj-wager-phase {
+  /* visible by default when FJ opens */
+}
+#fj-wager-note {
+  font-size: 0.85rem;
+  color: var(--subtext);
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* FJ Phase 2: question + scoring */
+#fj-question-phase { display: none; }
 
 .fj-question {
   font-family: 'Tiro Devanagari Hindi', serif;
@@ -663,12 +709,23 @@ input, select {
 .fj-correct-btn { background: var(--green); color:#000; padding:6px 14px; border-radius:6px; font-size:0.9rem; cursor:pointer; }
 .fj-wrong-btn   { background: var(--red);   color:#fff; padding:6px 14px; border-radius:6px; font-size:0.9rem; cursor:pointer; }
 
+/* Wager-locked rows (phase 2) */
+.fj-locked-wager {
+  background: rgba(245,200,66,0.1);
+  border: 1px solid rgba(245,200,66,0.25);
+  border-radius: 6px;
+  padding: 4px 12px;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-width: 80px;
+  text-align: center;
+}
+
 .fj-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .fj-actions button { flex: 1; min-width: 120px; }
 
-/* ═══════════════════════════════════════════
-   QR SIDE PANEL
-═══════════════════════════════════════════ */
+/* QR PANEL */
 #qr-panel {
   position: fixed;
   top: 0; right: 0;
@@ -712,9 +769,7 @@ input, select {
   cursor: pointer;
 }
 
-/* ═══════════════════════════════════════════
-   WINNER SCREEN
-═══════════════════════════════════════════ */
+/* WINNER SCREEN */
 #winner-screen {
   position: relative;
   z-index: 1;
@@ -786,9 +841,7 @@ input, select {
 .lb-name { font-size: 1.1rem; font-weight: 700; flex: 1; }
 .lb-score { font-size: 1.2rem; font-weight: 900; color: var(--gold); }
 
-/* ═══════════════════════════════════════════
-   PHONE / BUZZER SCREEN
-═══════════════════════════════════════════ */
+/* PHONE SCREEN */
 #phone-screen {
   position: relative;
   z-index: 1;
@@ -874,6 +927,43 @@ input, select {
   margin-bottom: 24px;
 }
 .p-my-score span { color: var(--gold); font-weight: 900; font-size: 1.2rem; }
+
+/* Phone-side answer timer */
+#phone-timer-wrap {
+  display: none;
+  background: var(--card2);
+  border: 1px solid rgba(245,200,66,0.25);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+#phone-timer-wrap.active { display: flex; }
+#phone-timer-bar-wrap {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+#phone-timer-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  border-radius: 4px;
+  transition: width 0.25s linear;
+  width: 100%;
+}
+#phone-timer-bar.urgent { background: linear-gradient(90deg, var(--red), var(--saffron)); }
+#phone-timer-num {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--gold);
+  min-width: 24px;
+  text-align: right;
+}
+#phone-timer-num.urgent { color: var(--red); }
 
 #buzz-btn {
   width: 190px;
@@ -990,9 +1080,7 @@ input, select {
   cursor: pointer;
 }
 
-/* ═══════════════════════════════════════════
-   CONFETTI
-═══════════════════════════════════════════ */
+/* CONFETTI */
 .confetti-piece {
   position: fixed;
   width: 10px;
@@ -1018,9 +1106,7 @@ input, select {
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════
-     HOST SCREEN
-════════════════════════════════════════════ -->
+<!-- HOST SCREEN -->
 <div id="host-screen">
 
   <div class="game-header">
@@ -1050,9 +1136,7 @@ input, select {
 
 </div>
 
-<!-- ════════════════════════════════════════════
-     QR PANEL
-════════════════════════════════════════════ -->
+<!-- QR PANEL -->
 <div id="qr-panel">
   <h3>📱 Player Invite</h3>
   <p>Players scan this code on their phone to open the buzzer and see live scores.</p>
@@ -1061,9 +1145,7 @@ input, select {
   <button class="qr-close-btn" onclick="toggleQR()">✕ Close</button>
 </div>
 
-<!-- ════════════════════════════════════════════
-     QUESTION MODAL
-════════════════════════════════════════════ -->
+<!-- QUESTION MODAL -->
 <div class="overlay" id="q-modal">
   <div class="modal">
     <div class="modal-badge">
@@ -1074,8 +1156,14 @@ input, select {
 
     <div id="qtext">—</div>
 
-    <!-- FIX: single answer-reveal element, placed correctly -->
     <div id="answer-reveal"></div>
+
+    <!-- Buzz Timer (shown after someone buzzes in) -->
+    <div id="buzz-timer-wrap">
+      <div id="buzz-timer-label">⏱ Answer Time</div>
+      <div id="buzz-timer-bar-wrap"><div id="buzz-timer-bar"></div></div>
+      <div id="buzz-timer-num">10</div>
+    </div>
 
     <!-- Daily Double Wager (host side) -->
     <div id="dd-wager-panel" class="hidden">
@@ -1103,29 +1191,35 @@ input, select {
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
-     FINAL JEOPARDY MODAL
-════════════════════════════════════════════ -->
+<!-- FINAL JEOPARDY MODAL -->
 <div class="overlay" id="fj-modal">
   <div id="fj-panel">
     <div class="fj-title">✦ Final Jeopardy ✦</div>
     <div class="fj-category" id="fj-cat"></div>
-    <div class="fj-question" id="fj-question">—</div>
 
-    <div class="fj-wagers" id="fj-wagers"></div>
+    <!-- Phase 1: Category shown, collect wagers -->
+    <div id="fj-wager-phase">
+      <div id="fj-wager-note">Category is revealed above. Players enter their wagers below before the question is shown.</div>
+      <div class="fj-wagers" id="fj-wagers"></div>
+      <div class="fj-actions">
+        <button class="btn-gold" onclick="revealFJQuestion()">📖 Reveal Question</button>
+      </div>
+    </div>
 
-    <div id="fj-answer-reveal" style="color:var(--green);font-weight:700;font-size:1.1rem;margin-bottom:16px;text-align:center;min-height:28px;"></div>
-
-    <div class="fj-actions">
-      <button class="btn-reveal" onclick="revealFJAnswer()">👁 Reveal Answer</button>
-      <button class="btn-gold"   onclick="finishFinalJeopardy()">🏆 End Game</button>
+    <!-- Phase 2: Question revealed, score answers -->
+    <div id="fj-question-phase">
+      <div class="fj-question" id="fj-question">—</div>
+      <div class="fj-wagers" id="fj-scoring-rows"></div>
+      <div id="fj-answer-reveal" style="color:var(--green);font-weight:700;font-size:1.1rem;margin-bottom:16px;text-align:center;min-height:28px;"></div>
+      <div class="fj-actions">
+        <button class="btn-reveal" onclick="revealFJAnswer()">👁 Reveal Answer</button>
+        <button class="btn-gold"   onclick="finishFinalJeopardy()">🏆 End Game</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
-     WINNER SCREEN
-════════════════════════════════════════════ -->
+<!-- WINNER SCREEN -->
 <div id="winner-screen" class="hidden">
   <div class="winner-title">🎬 Shabaash!</div>
   <div style="color:var(--subtext);font-size:1rem;letter-spacing:0.1em;margin-bottom:4px;">WINNER</div>
@@ -1134,9 +1228,7 @@ input, select {
   <button class="btn-gold" onclick="location.reload()" style="padding:12px 32px;font-size:1rem;">🔄 Play Again</button>
 </div>
 
-<!-- ════════════════════════════════════════════
-     PHONE / BUZZER SCREEN
-════════════════════════════════════════════ -->
+<!-- PHONE / BUZZER SCREEN -->
 <div id="phone-screen" class="hidden">
 
   <div id="join-panel">
@@ -1158,6 +1250,13 @@ input, select {
       <button id="btn-submit-wager" onclick="submitPhoneWager()">Submit Wager</button>
     </div>
 
+    <!-- Phone-side answer timer -->
+    <div id="phone-timer-wrap">
+      <span style="font-size:0.72rem;color:var(--subtext);text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;">⏱ Time</span>
+      <div id="phone-timer-bar-wrap"><div id="phone-timer-bar"></div></div>
+      <div id="phone-timer-num">10</div>
+    </div>
+
     <button id="buzz-btn" onclick="sendBuzz()">BUZZ!</button>
     <div id="phone-status">Waiting for question…</div>
 
@@ -1166,9 +1265,6 @@ input, select {
 
 </div>
 
-<!-- ════════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════ -->
 <script>
 // ══════════════════════════════════════════════
 // FIREBASE CONFIG
@@ -1334,8 +1430,6 @@ function pickDailyDoubles(numCats, numClues, count) {
 function genRoom() {
   return Math.random().toString(36).slice(2, 6).toUpperCase();
 }
-
-// Firebase keys cannot contain . # $ / [ ]
 function encodeKey(name) {
   return name.replace(/[.#$\[\]/]/g, "_");
 }
@@ -1363,6 +1457,14 @@ let buzzQueue    = [];
 let ddPlayer     = null;
 let ddWager      = 0;
 let myName       = null;
+
+// Timer state
+const BUZZ_TIMER_SECONDS = 10;
+let buzzTimerInterval = null;
+let buzzTimerRemaining = 0;
+
+// FJ wager storage (filled in phase 1)
+let fjWagers = {};
 
 // ══════════════════════════════════════════════
 // INIT
@@ -1438,7 +1540,6 @@ function startGame() {
   buildBoard(ROUND1, usedR1, ddR1);
   renderScores();
 
-  // Listen for phone players joining
   db.ref("rooms/" + room + "/players").on("value", function(snap) {
     const data = snap.val() || {};
     Object.entries(data).forEach(function(entry) {
@@ -1450,14 +1551,12 @@ function startGame() {
         renderPlayerChips();
         renderScores();
       } else {
-        // Keep scores in sync if updated elsewhere
         scores[name] = score;
         renderScores();
       }
     });
   });
 
-  // Listen for buzzes
   db.ref("rooms/" + room + "/buzz").on("value", function(snap) {
     const d = snap.val();
     if (!d) {
@@ -1465,9 +1564,12 @@ function startGame() {
       buzzQueue  = [];
       document.getElementById("buzz-winner-name").textContent = "Waiting…";
       document.getElementById("buzz-queue-display").textContent = "";
+      // If a question is open and buzz was cleared (re-buzz scenario), stop timer
+      stopBuzzTimer();
       return;
     }
     const q = d.queue || [d.winner];
+    const prevWinner = buzzWinner;
     buzzWinner = d.winner;
     buzzQueue  = q;
     document.getElementById("buzz-winner-name").innerHTML =
@@ -1478,10 +1580,61 @@ function startGame() {
     } else {
       document.getElementById("buzz-queue-display").textContent = "";
     }
+    // FIX 3: Start timer when someone new buzzes in
+    if (prevWinner !== buzzWinner) {
+      startBuzzTimer();
+    }
   });
 
-  // Broadcast round
   db.ref("rooms/" + room + "/game").set({ round: 1, open: false });
+}
+
+// ══════════════════════════════════════════════
+// BUZZ TIMER (HOST SIDE)
+// ══════════════════════════════════════════════
+function startBuzzTimer() {
+  stopBuzzTimer();
+  buzzTimerRemaining = BUZZ_TIMER_SECONDS;
+  const wrap  = document.getElementById("buzz-timer-wrap");
+  const bar   = document.getElementById("buzz-timer-bar");
+  const num   = document.getElementById("buzz-timer-num");
+
+  wrap.classList.add("active");
+  bar.classList.remove("urgent");
+  num.classList.remove("urgent");
+  num.textContent = buzzTimerRemaining;
+  bar.style.width = "100%";
+
+  // Also broadcast timer start to phones
+  db.ref("rooms/" + room + "/timer").set({ start: Date.now(), duration: BUZZ_TIMER_SECONDS });
+
+  buzzTimerInterval = setInterval(function() {
+    buzzTimerRemaining--;
+    const pct = (buzzTimerRemaining / BUZZ_TIMER_SECONDS) * 100;
+    bar.style.width = pct + "%";
+    num.textContent = buzzTimerRemaining;
+
+    if (buzzTimerRemaining <= 3) {
+      bar.classList.add("urgent");
+      num.classList.add("urgent");
+    }
+
+    if (buzzTimerRemaining <= 0) {
+      stopBuzzTimer();
+      // Time's up — auto-mark wrong if no action taken
+    }
+  }, 1000);
+}
+
+function stopBuzzTimer() {
+  if (buzzTimerInterval) {
+    clearInterval(buzzTimerInterval);
+    buzzTimerInterval = null;
+  }
+  const wrap = document.getElementById("buzz-timer-wrap");
+  if (wrap) wrap.classList.remove("active");
+  // Clear timer in FB so phones stop
+  db.ref("rooms/" + room + "/timer").remove();
 }
 
 // ══════════════════════════════════════════════
@@ -1530,15 +1683,15 @@ function openQuestion(ci, qi, roundData, usedMap, ddSet) {
   currentKey = key;
   currentQ   = { q: clue.q, a: clue.a, cat: cat.name, val: val, isDD: isDD };
 
-  // Reset buzz state
   buzzLocked = false;
   buzzWinner = null;
   buzzQueue  = [];
   ddPlayer   = null;
   ddWager    = 0;
 
-  // Clear Firebase buzz
+  stopBuzzTimer();
   db.ref("rooms/" + room + "/buzz").remove();
+  db.ref("rooms/" + room + "/timer").remove();
 
   if (isDD) {
     db.ref("rooms/" + room + "/game").set({
@@ -1558,7 +1711,6 @@ function openQuestion(ci, qi, roundData, usedMap, ddSet) {
     });
   }
 
-  // Reset modal state
   document.getElementById("m-cat").textContent  = cat.name.toUpperCase();
   document.getElementById("m-pts").textContent  = "₹" + val;
   document.getElementById("answer-reveal").textContent = "";
@@ -1625,51 +1777,62 @@ function markCorrect() {
   }
 }
 
+// FIX 1: markWrong properly resets so re-buzz works
 function markWrong() {
+  stopBuzzTimer();
+
   if (currentQ.isDD) {
     if (ddPlayer) {
       scores[ddPlayer] = (scores[ddPlayer] || 0) - ddWager;
       syncScoreToFB(ddPlayer);
     }
     finishQuestion();
-  } else {
-    if (buzzWinner) {
-      // FIX: deduct half points, then allow re-buzz (don't close modal)
-      scores[buzzWinner] = (scores[buzzWinner] || 0) - Math.floor(currentQ.val / 2);
-      syncScoreToFB(buzzWinner);
-    }
-    // Reset buzz for re-buzz opportunity
-    buzzLocked = false;
-    buzzWinner = null;
-    buzzQueue  = [];
-    db.ref("rooms/" + room + "/buzz").remove();
-    document.getElementById("buzz-winner-name").textContent = "Waiting (re-buzz)…";
-    document.getElementById("buzz-queue-display").textContent = "";
-    renderScores();
-    // Don't close modal — leave open for another buzz
+    return;
   }
+
+  // Normal question: deduct half, reset buzz state for re-buzz
+  if (buzzWinner) {
+    scores[buzzWinner] = (scores[buzzWinner] || 0) - Math.floor(currentQ.val / 2);
+    syncScoreToFB(buzzWinner);
+  }
+
+  // Clear buzz in Firebase — this re-enables all phones
+  buzzWinner = null;
+  buzzQueue  = [];
+  db.ref("rooms/" + room + "/buzz").remove();
+
+  // Explicitly re-open the question in Firebase so phones know to re-enable buzz
+  db.ref("rooms/" + room + "/game").update({ open: true, rebuzz: Date.now() });
+
+  document.getElementById("buzz-winner-name").textContent = "Waiting (re-buzz)…";
+  document.getElementById("buzz-queue-display").textContent = "";
+  renderScores();
+  // Modal stays open for another buzz
 }
 
 function finishQuestion() {
+  stopBuzzTimer();
   const usedMap = currentRound === 1 ? usedR1 : usedR2;
   usedMap[currentKey] = true;
   const tile = document.getElementById("tile-" + currentKey);
   if (tile) { tile.classList.add("used"); tile.textContent = ""; }
 
   db.ref("rooms/" + room + "/buzz").remove();
+  db.ref("rooms/" + room + "/timer").remove();
   db.ref("rooms/" + room + "/game").set({ open: false, round: currentRound });
   document.getElementById("q-modal").classList.remove("show");
   renderScores();
 }
 
 function closeQuestion() {
-  // FIX: reset modal visibility state on close
+  stopBuzzTimer();
   document.getElementById("dd-wager-panel").classList.add("hidden");
   document.getElementById("buzz-box").style.display = "";
   document.getElementById("m-dd").classList.add("hidden");
 
   db.ref("rooms/" + room + "/game").set({ open: false, round: currentRound });
   db.ref("rooms/" + room + "/buzz").remove();
+  db.ref("rooms/" + room + "/timer").remove();
   document.getElementById("q-modal").classList.remove("show");
 }
 
@@ -1688,32 +1851,67 @@ function goToRound2() {
 }
 
 // ══════════════════════════════════════════════
-// HOST: FINAL JEOPARDY
+// HOST: FINAL JEOPARDY  (FIX 2 — two-phase)
 // ══════════════════════════════════════════════
 function startFinalJeopardy() {
-  if (!confirm("Start Final Jeopardy? All players will wager.")) return;
+  if (!confirm("Start Final Jeopardy? All players will wager first, then see the question.")) return;
 
-  document.getElementById("fj-cat").textContent      = FINAL_JEOPARDY.category.toUpperCase();
+  fjWagers = {};
+
+  // Show category, hide question
+  document.getElementById("fj-cat").textContent = FINAL_JEOPARDY.category.toUpperCase();
   document.getElementById("fj-question").textContent = FINAL_JEOPARDY.q;
   document.getElementById("fj-answer-reveal").textContent = "";
 
+  // Phase 1: wager input rows
   const maxWager = currentRound === 2 ? 2000 : 1000;
-  const rows = players.map(function(p) {
+  const wagerRows = players.map(function(p) {
     const safeKey = encodeKey(p);
-    const safeP   = p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const curScore = scores[p] || 0;
-    return '<div class="fj-player-row" id="fj-row-' + safeKey + '">' +
+    return '<div class="fj-player-row" id="fj-wrow-' + safeKey + '">' +
       '<div class="fj-player-name">' + p + '</div>' +
       '<div class="fj-player-score">₹' + curScore + '</div>' +
       '<input class="fj-wager-in" id="fj-wager-' + safeKey + '" type="number" placeholder="Wager" min="0" max="' + Math.max(curScore, maxWager) + '"/>' +
+      '</div>';
+  }).join("");
+  document.getElementById("fj-wagers").innerHTML = wagerRows;
+
+  // Show phase 1, hide phase 2
+  document.getElementById("fj-wager-phase").style.display = "";
+  document.getElementById("fj-question-phase").style.display = "none";
+
+  db.ref("rooms/" + room + "/game").set({ open: false, finalJeopardy: true, round: 3 });
+  document.getElementById("fj-modal").classList.add("show");
+}
+
+// Called when host clicks "Reveal Question" after wagers are in
+function revealFJQuestion() {
+  // Lock in all wagers from inputs
+  players.forEach(function(p) {
+    const safeKey = encodeKey(p);
+    const inp = document.getElementById("fj-wager-" + safeKey);
+    fjWagers[p] = inp ? (parseInt(inp.value) || 0) : 0;
+  });
+
+  // Build phase 2 scoring rows (with locked wagers displayed)
+  const scoringRows = players.map(function(p) {
+    const safeKey = encodeKey(p);
+    const safeP   = p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const curScore = scores[p] || 0;
+    const wager   = fjWagers[p] || 0;
+    return '<div class="fj-player-row" id="fj-row-' + safeKey + '">' +
+      '<div class="fj-player-name">' + p + '</div>' +
+      '<div class="fj-player-score" id="fj-score-' + safeKey + '">₹' + curScore + '</div>' +
+      '<div class="fj-locked-wager">Wager: ₹' + wager + '</div>' +
       '<button class="fj-correct-btn" onclick="fjScore(\'' + safeP + '\',true)">✓</button>' +
       '<button class="fj-wrong-btn"   onclick="fjScore(\'' + safeP + '\',false)">✗</button>' +
       '</div>';
   }).join("");
+  document.getElementById("fj-scoring-rows").innerHTML = scoringRows;
 
-  document.getElementById("fj-wagers").innerHTML = rows;
-  db.ref("rooms/" + room + "/game").set({ open: false, finalJeopardy: true, round: 3 });
-  document.getElementById("fj-modal").classList.add("show");
+  // Transition to phase 2
+  document.getElementById("fj-wager-phase").style.display = "none";
+  document.getElementById("fj-question-phase").style.display = "";
 }
 
 function revealFJAnswer() {
@@ -1722,13 +1920,12 @@ function revealFJAnswer() {
 
 function fjScore(name, correct) {
   const safeKey = encodeKey(name);
-  const wager   = parseInt(document.getElementById("fj-wager-" + safeKey).value) || 0;
+  const wager   = fjWagers[name] || 0;
   scores[name]  = (scores[name] || 0) + (correct ? wager : -wager);
   syncScoreToFB(name);
   const row = document.getElementById("fj-row-" + safeKey);
   if (row) row.style.opacity = "0.5";
-  // Update displayed score in the row
-  const scoreEl = row ? row.querySelector(".fj-player-score") : null;
+  const scoreEl = document.getElementById("fj-score-" + safeKey);
   if (scoreEl) scoreEl.textContent = "₹" + scores[name];
 }
 
@@ -1810,10 +2007,8 @@ function joinGame() {
   document.getElementById("p-name-display").textContent = myName;
   document.getElementById("p-room-display").textContent = "ROOM " + room;
 
-  // Register in Firebase (phone-side version)
   db.ref("rooms/" + room + "/players/" + encodeKey(myName))
     .transaction(function(cur) {
-      // Only set if not already present (avoid overwriting host-set score)
       if (!cur) return { name: myName, score: 0 };
       return { name: myName, score: cur.score || 0 };
     });
@@ -1847,11 +2042,65 @@ function submitPhoneWager() {
 }
 
 // ══════════════════════════════════════════════
+// PHONE: CLIENT-SIDE TIMER
+// ══════════════════════════════════════════════
+let phoneTimerInterval = null;
+
+function startPhoneTimer(durationSec, startTimestamp) {
+  stopPhoneTimer();
+  const wrap = document.getElementById("phone-timer-wrap");
+  const bar  = document.getElementById("phone-timer-bar");
+  const num  = document.getElementById("phone-timer-num");
+
+  wrap.classList.add("active");
+  bar.classList.remove("urgent");
+  num.classList.remove("urgent");
+
+  function tick() {
+    const elapsed = (Date.now() - startTimestamp) / 1000;
+    const remaining = Math.max(0, durationSec - elapsed);
+    const pct = (remaining / durationSec) * 100;
+    bar.style.width = pct + "%";
+    num.textContent = Math.ceil(remaining);
+
+    if (remaining <= 3) {
+      bar.classList.add("urgent");
+      num.classList.add("urgent");
+    }
+
+    if (remaining <= 0) {
+      stopPhoneTimer();
+    }
+  }
+  tick();
+  phoneTimerInterval = setInterval(tick, 250);
+}
+
+function stopPhoneTimer() {
+  if (phoneTimerInterval) {
+    clearInterval(phoneTimerInterval);
+    phoneTimerInterval = null;
+  }
+  const wrap = document.getElementById("phone-timer-wrap");
+  if (wrap) wrap.classList.remove("active");
+}
+
+// ══════════════════════════════════════════════
 // PHONE: LISTEN
 // ══════════════════════════════════════════════
 function listenAsPlayer() {
   const statusEl = document.getElementById("phone-status");
   const buzzBtn  = document.getElementById("buzz-btn");
+
+  // Listen for timer from host
+  db.ref("rooms/" + room + "/timer").on("value", function(snap) {
+    const t = snap.val();
+    if (!t) {
+      stopPhoneTimer();
+      return;
+    }
+    startPhoneTimer(t.duration, t.start);
+  });
 
   db.ref("rooms/" + room + "/game").on("value", function(snap) {
     const g = snap.val();
@@ -1859,33 +2108,37 @@ function listenAsPlayer() {
 
     if (g.over) {
       buzzBtn.classList.add("locked");
+      buzzBtn.classList.remove("buzzed-me");
       statusEl.className = "";
       statusEl.textContent = "🎬 Game over! " + (g.winner ? g.winner + " wins!" : "");
+      stopPhoneTimer();
       return;
     }
 
     if (g.finalJeopardy) {
       buzzBtn.classList.add("locked");
+      buzzBtn.classList.remove("buzzed-me");
       statusEl.className = "";
       statusEl.textContent = "🌟 Final Jeopardy — host controls wagers";
       document.getElementById("phone-wager-panel").classList.add("hidden");
+      stopPhoneTimer();
       return;
     }
 
-    // FIX: Only show DD wager panel to ALL players (host picks who is answering)
-    // The wager panel on phone is informational; actual wager is on host side
     if (g.dailyDouble && !g.open) {
       buzzBtn.classList.add("locked");
       buzzBtn.classList.remove("buzzed-me");
       statusEl.className = "";
       statusEl.textContent = "✦ Daily Double — host selecting player & wager";
       document.getElementById("phone-wager-panel").classList.add("hidden");
+      stopPhoneTimer();
       return;
     }
 
     document.getElementById("phone-wager-panel").classList.add("hidden");
 
     if (g.open) {
+      // FIX 1: When game re-opens (rebuzz), always unlock the button
       buzzBtn.classList.remove("locked", "buzzed-me");
       statusEl.className = "";
       statusEl.textContent = "🔔 Buzz in!";
@@ -1894,12 +2147,15 @@ function listenAsPlayer() {
       buzzBtn.classList.add("locked");
       statusEl.className = "";
       statusEl.textContent = "Waiting for question…";
+      stopPhoneTimer();
     }
   });
 
   db.ref("rooms/" + room + "/buzz").on("value", function(snap) {
     const d = snap.val();
     if (!d) {
+      // FIX 1: Buzz cleared = re-buzz opportunity; don't lock unless game is closed
+      // We don't touch buzzed-me here — game listener handles unlock on open
       buzzBtn.classList.remove("buzzed-me");
       return;
     }
